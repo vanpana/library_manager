@@ -202,36 +202,53 @@ class RentalController(object):
         return final_date
 
     def find_by_id(self, rental_id):
-        return self.__rental_repository.find_by_id(rental_id)
+        return self.__rental_repository[rental_id]
     
     def add_rental(self, rental_id, book_id, client_id, rented, due):
-        book = self.__book_repository.find_by_id(book_id)
+        # if rental.book_id == -1:
+        #
+        # # if rental.client_id == -1:
+        #
+
+        book = self.__book_repository[book_id]
         if book == None:
-            book_id = -1
-        if self.__client_repository.find_by_id(client_id) == None:
-            client_id = -1
+            raise InexistentIdException("No book with id {0}".format(book_id))
+        if self.__client_repository[client_id] == None:
+            raise InexistentIdException("No client with id {0}".format(client_id))
+
         rented = self.date_to_class(rented)
         due = self.date_to_class(due)
         returned = "Not returned"
         rental = Rental(rental_id, book_id, client_id, rented, due, returned)
         book.times_rented += 1
-        self.__rental_repository.rent(rental)
+        if not self.find_by_id(rental.rental_id) == None:
+            raise DuplicateIdException("Rental already existing with with id {0}".format(rental.rental_id))
+        for r in self.__rental_repository:
+            if r.book_id == rental.book_id and type(r.returned) == str:
+                    raise DuplicateIdException("Book with id {0} is already rented until {1}!" \
+                                           .format(rental.book_id, rental.due))
+        self.__rental_repository[rental_id] = rental
     
     def return_rental(self, rental_id, returned):
         days_rented = 0
         returned = self.date_to_class(returned)
-        rental = self.__rental_repository.find_by_id(rental_id)
+        rental = self.__rental_repository[rental_id]
+        if rental.rented > returned:
+            raise DuplicateIdException("Returned date is before rental day!")
         try:
-            book_id = self.__book_repository.find_by_id(rental.book_id).book_id
-            client_id = self.__client_repository.find_by_id(rental.client_id).client_id
+            book_id = self.__book_repository[rental.book_id].book_id
+            client_id = self.__client_repository[rental.client_id].client_id
         except AttributeError:
             print("Inexistent ID")
+        if rental == None:
+            raise InexistentIdException("No rental with with id {0}".format(rental_id))
         if rental != None:
             days_rented += (date(returned.year, returned.month, returned.day) - \
                                date(rental.rented.year, rental.rented.month, rental.rented.day)).days
-            self.__book_repository.find_by_id(book_id).days_rented += days_rented
-            self.__client_repository.find_by_id(client_id).days_rented += days_rented
-        self.__rental_repository.return_rental(rental_id, returned)
+            self.__book_repository[book_id].days_rented += days_rented
+            self.__client_repository[client_id].days_rented += days_rented
+        rental.returned = returned
+        self.__rental_repository[rental_id] = rental
 
     def sort_overdue(self):
         sortedv = []
@@ -246,8 +263,10 @@ class RentalController(object):
         list_for_return = []
         for r in range(0, len(sortedv)):
             #list_for_return.append(self.find_by_id(sortedv[r]["id"]))
-            aux = str(self.__book_repository.find_by_id(self.find_by_id(sortedv[r]["id"]).book_id)) + " with overdue {0} days".\
+            aux = str(self.__book_repository[self.__rental_repository[sortedv[r]["id"]].book_id]) + " with overdue {0} days".\
                 format(self.find_by_id(sortedv[r]["id"]).overdue)
+            # aux = str(self.__book_repository.find_by_id(self.find_by_id(sortedv[r]["id"]).book_id)) + " with overdue {0} days".\
+            #     format(self.find_by_id(sortedv[r]["id"]).overdue)
             list_for_return.append(aux)
             #list_for_return.append(self.__book_repository.find_by_id(self.find_by_id(sortedv[r]["id"]).book_id))
         return list_for_return

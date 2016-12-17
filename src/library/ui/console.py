@@ -410,6 +410,7 @@ class Console(object):
         self.__rental_controller.return_rental(4, "12.8.2016")
         self.__rental_controller.add_rental(5, 10, 5, "09.8.2016", "10.9.2016")
         self.__rental_controller.return_rental(5, "12.8.2016")
+        self.__rental_controller.add_rental(6, 10, 5, "13.8.2016", "13.9.2016")
 
 
     def menuLoop(self):  
@@ -491,7 +492,7 @@ class Console(object):
         '''
         Function for looping the program till exit command
         '''
-        # self.test_data()
+        self.test_data()
         while True:
             if self.menuLoop() == False:
                 break

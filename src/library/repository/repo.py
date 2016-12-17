@@ -174,7 +174,7 @@ class RentalRepository(object):
 
     def __init__(self, validator_class):
         self.__validator_class = validator_class
-        self.__rental_entities = {}
+        self.__rental_entities = []
         self.__rental_backup = []
         self.__rental_backup_redo = []
 
@@ -184,29 +184,10 @@ class RentalRepository(object):
         return None
 
     def rent(self, rental):
-        if rental.book_id == -1:
-            raise InexistentIdException("No book with id {0}".format(rental.book_id))
-        for r in self.__rental_entities:
-            if self.__rental_entities[r].book_id == rental.book_id and type(self.__rental_entities[r].returned) == str:
-                raise DuplicateIdException("Book with id {0} is already rented until {1}!" \
-                                       .format(rental.book_id, rental.due))
-
-        if rental.client_id == -1:
-            raise InexistentIdException("No client with id {0}".format(rental.client_id))
-
-        if not self.find_by_id(rental.rental_id) == None:
-            raise DuplicateIdException("Rental already existing with with id {0}".format(rental.rental_id))
-
-        ##########CHECK BOOK AND CLIENT
-        self.__validator_class.validate_rental(rental)
-        self.__rental_entities[rental.rental_id] = rental
+        pass
 
     def return_rental(self, rental_id, returned):
         rental = self.find_by_id(rental_id)
-        if rental == None:
-            raise InexistentIdException("No rental with with id {0}".format(rental_id))
-        if rental.rented > returned:
-            raise DuplicateIdException("Returned date is before rental day!")
         rental.returned = returned
 
     def backup_op(self):
@@ -232,4 +213,33 @@ class RentalRepository(object):
         pass
 
     def get_all(self):
-        return self.__rental_entities.values()
+        return self.__rental_entities
+
+    def __getitem__(self, key):
+        for rental in self.__rental_entities:
+            if rental.rental_id == key:
+                return rental
+        return None
+
+    def __setitem__(self, key, item):
+        try:
+            self.__validator_class.validate_rental(item)
+        except LibraryValidatorException as pve:
+            raise LibraryException(pve)
+        self.__rental_backup_redo = []
+        if self[key] is not None:
+            for rental in range(0, len(self.__rental_entities)):
+                if self.__rental_entities[rental].rental_id == key:
+                    self.__rental_entities[rental] = item
+        else:
+            self.__rental_entities.append(item)
+
+    def __iter__(self):
+        self.counter = 0
+        return self
+
+    def __next__(self):
+        if (self.counter < len(self.__rental_entities)):
+            self.counter = self.counter + 1
+            return self.__rental_entities[self.counter - 1]
+        raise StopIteration
