@@ -262,13 +262,11 @@ class RentalController(object):
             itemgetter("days_overdue"), reverse=True)
         list_for_return = []
         for r in range(0, len(sortedv)):
-            #list_for_return.append(self.find_by_id(sortedv[r]["id"]))
             aux = str(self.__book_repository[self.__rental_repository[sortedv[r]["id"]].book_id]) + " with overdue {0} days".\
                 format(self.find_by_id(sortedv[r]["id"]).overdue)
             # aux = str(self.__book_repository.find_by_id(self.find_by_id(sortedv[r]["id"]).book_id)) + " with overdue {0} days".\
             #     format(self.find_by_id(sortedv[r]["id"]).overdue)
             list_for_return.append(aux)
-            #list_for_return.append(self.__book_repository.find_by_id(self.find_by_id(sortedv[r]["id"]).book_id))
         return list_for_return
 
     def backup_op(self):

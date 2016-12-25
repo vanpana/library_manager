@@ -6,7 +6,7 @@ class Book(object):
     Class of type book which holds an id, title, description and author.
     Getters and setters for all params.
     '''
-    def __init__(self,book_id, title, description, author):
+    def __init__(self, book_id, title, description, author):
         self.__book_id = book_id
         self.__title = title
         self.__description = description
@@ -74,6 +74,15 @@ class Book(object):
         return "Book with id: {0}, title: {1}, description: {2}, author: {3}, rented {4} times and {5} days"\
             .format(self.book_id, self.title, self.description, self.author, self.times_rented, self.days_rented)
 
+    def __lt__(self, other):
+        return type(other) == Book and self.book_id < other.book_id
+
+    def __eq__(self, other):
+        return type(other) == Book and self.book_id == other.book_id
+
+    def __gt__(self, other):
+        return type(other) == Book and self.book_id > other.book_id
+
 
 class Client:
     '''
@@ -112,6 +121,14 @@ class Client:
     def __str__(self, *args, **kwargs):
         return "Client with id: {0} and name: {1} with a total of {2} days rented.".format(self.client_id, self.name, self.days_rented)
 
+    def __lt__(self, other):
+        return type(other) == Book and self.client_id < other.client_id
+
+    def __eq__(self, other):
+        return type(other) == Book and self.client_id == other.client_id
+
+    def __gt__(self, other):
+        return type(other) == Book and self.client_id > other.client_id
 
 class Rental:
     '''
@@ -187,6 +204,12 @@ class Rental:
         else:
             return "Rental number {0}: Book with id {1}, was rented to client with id {2} from date {3} and returned on date {4}.".format(\
                 self.rental_id, self.book_id, self.client_id, self.rented, self.returned)
-#         if self.returned == 1:
-#             return "(Rental number {0}: Book with id {1}, was rented to client with id {2} from date {3} and returned before date {4}.)".format(\
-#                 self.rental_id, self.book_id, self.client_id, self.rented, self.due)
+
+    def __lt__(self, other):
+        return type(other) == Book and self.rental_id < other.rental_id
+
+    def __eq__(self, other):
+        return type(other) == Book and self.rental_id == other.rental_id
+
+    def __gt__(self, other):
+        return type(other) == Book and self.rental_id > other.rental_id
